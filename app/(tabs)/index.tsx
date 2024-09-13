@@ -64,8 +64,31 @@ export default function HomeScreen() {
 
   const renderChecklistItem = ({ item }: { item: ChecklistItem }) => (
     <ThemedView style={styles.itemContainer}>
-      <ThemedText>{item.type}</ThemedText>
-      <ThemedText>{item.amount_of_milk_produced}</ThemedText>
+      <ThemedText>{"Id: " + item._id}</ThemedText>
+      <ThemedText>{"Type: " + item.type}</ThemedText>
+      <ThemedText>{"Milk produced: " + item.amount_of_milk_produced}</ThemedText>
+      <ThemedView style={styles.itemContainer}>
+        <ThemedText>{"Farmer:"}</ThemedText>
+        <ThemedText>{"Name: " + item.farmer.name}</ThemedText>
+        <ThemedText>{"City: " + item.farmer.city}</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.itemContainer}>
+        <ThemedText>{"From: " + item.from.name}</ThemedText>
+        <ThemedText>{"To: " + item.to.name}</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.itemContainer}>
+        <ThemedText>{"Number of cows: " + item.number_of_cows_head}</ThemedText>
+        <ThemedText>{"Supervision: " + item.had_supervision}</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.itemContainer}>
+        <ThemedText>{"Location:"}</ThemedText>
+        <ThemedText>{"Latitude: " + item.location.latitude}</ThemedText>
+        <ThemedText>{"Longitude: " + item.location.longitude}</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.itemContainer}>
+        <ThemedText>{"Created at: " + item.created_at.toString()}</ThemedText>
+        <ThemedText>{"Updated at: " + item.updated_at.toString()}</ThemedText>
+      </ThemedView>
     </ThemedView>
   );
 
