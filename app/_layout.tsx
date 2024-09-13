@@ -1,12 +1,18 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import 'react-native-get-random-values';
+import { useEffect } from 'react';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components/native';
+import { lightTheme, darkTheme } from '@/constants/theme';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { healthCheck, getObjects, createObject } from '@/services/apiService';
+import { healthCheck, createObject } from '@/services/apiService';
 import { realm } from '@/services/realmDB';
+import Realm from "realm"; // Ensure Realm is imported
+
+// Ensure global Realm usage is disabled
+Realm.flags.THROW_ON_GLOBAL_REALM = true;
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -18,6 +24,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    console.log("Realm file path:", realm.path);
     if (loaded) {
       SplashScreen.hideAsync();
     }
@@ -28,12 +35,14 @@ export default function RootLayout() {
       const isOnline = await healthCheck();
       if (isOnline) {
         const realmObjects = realm.objects('Object');
-        realmObjects.forEach(async (obj) => {
-          try {
-            await createObject(obj);
-          } catch (error) {
-            console.log('Error syncing object:', error);
-          }
+        realm.write(() => {
+          realmObjects.forEach(async (obj) => {
+            try {
+              await createObject(obj);
+            } catch (error) {
+              console.error('Error syncing object:', error);
+            }
+          });
         });
       }
     };
@@ -45,12 +54,14 @@ export default function RootLayout() {
     return null;
   }
 
+  const styledTheme = colorScheme === 'dark' ? darkTheme : lightTheme;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <StyledThemeProvider theme={styledTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
-    </ThemeProvider>
+    </StyledThemeProvider>
   );
 }

@@ -39,21 +39,29 @@ export const ObjectSchema = {
     updated_at: 'date',
     __v: 'int',
   },
-  primaryKey: '_id',
 };
 
 export const realm = new Realm({
   schema: [ObjectSchema, FarmerSchema, PersonSchema, LocationSchema],
-  schemaVersion: 3,
+  schemaVersion: 13,
   migration: (oldRealm, newRealm) => {
     const oldVersion = oldRealm.schemaVersion;
-
-    if (oldVersion < 3) {
+  
+    if (oldVersion < 13) {
       const oldObjects = oldRealm.objects('Object');
       const newObjects = newRealm.objects('Object');
-
+  
+      // Ensure no duplicate _id values
+      const idsSet = new Set();
+  
       for (let i = 0; i < oldObjects.length; i++) {
-        newObjects[i]._id = oldObjects[i]._id.toString();
+        const oldId = oldObjects[i]._id.toString();
+        if (!idsSet.has(oldId)) {
+          newObjects[i]._id = oldId;
+          idsSet.add(oldId); // Track unique _id
+        } else {
+          console.warn(`Duplicate _id found during migration: ${oldId}`);
+        }
       }
     }
   }

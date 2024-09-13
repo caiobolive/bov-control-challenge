@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Platform, FlatList, Text } from 'react-native';
+import { Image, StyleSheet, FlatList, Text } from 'react-native';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,24 +16,25 @@ export default function HomeScreen() {
     try {
       const response = await getObjects();
       const checklistData = response.data;
-  
+
       if (Array.isArray(checklistData)) {
+        // Convert all `_id` fields to string for Realm compatibility
         realm.write(() => {
           checklistData.forEach((item: ChecklistItem) => {
             const parsedItem = {
               ...item,
-              _id: item._id.toString(),
+              _id: item._id.toString(), // Convert numeric _id to string
             };
-            realm.create('Object', parsedItem, true);
+            realm.create('Object', parsedItem, true); // Upsert to avoid duplicates
           });
         });
-  
+
         setChecklists(checklistData);
       } else {
         console.error('Data from API is not an array', checklistData);
       }
-    } catch (error) {
-      console.log('Error fetching data from API', error);
+    } catch (error: unknown) {
+      console.log('Error fetching data from API', (error as any).message);
     }
   };
 
@@ -86,8 +87,8 @@ export default function HomeScreen() {
         <ThemedText>{"Longitude: " + item.location.longitude}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.itemContainer}>
-        <ThemedText>{"Created at: " + item.created_at.toString()}</ThemedText>
-        <ThemedText>{"Updated at: " + item.updated_at.toString()}</ThemedText>
+        <ThemedText>{"Created at: " + new Date(item.created_at).toLocaleString()}</ThemedText>
+        <ThemedText>{"Updated at: " + new Date(item.updated_at).toLocaleString()}</ThemedText>
       </ThemedView>
     </ThemedView>
   );

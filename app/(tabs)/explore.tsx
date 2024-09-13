@@ -1,102 +1,110 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React, { useState } from 'react';
+import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Realm from 'realm';
+import { realm } from '../../services/realmDB';
+import 'react-native-get-random-values';
+import { Button, Input, IconButton } from '@/components';
+import { Container, Header, Title, Form } from '../../components/styles';
 
 export default function TabTwoScreen() {
+  const [type, setType] = useState('');
+  const [amountOfMilkProduced, setAmountOfMilkProduced] = useState('');
+  const [farmerName, setFarmerName] = useState('');
+  const [farmerCity, setFarmerCity] = useState('');
+  const [fromName, setFromName] = useState('');
+  const [toName, setToName] = useState('');
+  const [numberOfCowsHead, setNumberOfCowsHead] = useState('');
+  const [hadSupervision, setHadSupervision] = useState(false);
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+
+  const navigation = useNavigation();
+
+  async function handleCreateChecklist() {
+    try {
+      realm.write(() => {
+        realm.create('Object', {
+          _id: new Realm.BSON.ObjectId(), // Unique ID
+          type,
+          amount_of_milk_produced: amountOfMilkProduced,
+          farmer: { name: farmerName, city: farmerCity },
+          from: { name: fromName },
+          to: { name: toName },
+          number_of_cows_head: numberOfCowsHead,
+          had_supervision: hadSupervision,
+          location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
+          created_at: new Date(),
+          updated_at: new Date(),
+          __v: 0,
+        });
+      });
+      Alert.alert('Success', 'Checklist created successfully');
+      navigation.goBack();
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Failed to create checklist');
+    }
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={<Ionicons size={310} name="code-slash" style={styles.headerImage} />}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText> library
-          to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <Container>
+      <Header>
+        <Title>Create Checklist</Title>
+        <IconButton icon="arrow-back-outline" onPress={() => navigation.goBack()} />
+      </Header>
+
+      <Form>
+        <Input
+          placeholder="Type"
+          onChangeText={setType}
+          value={type}
+        />
+        <Input
+          placeholder="Amount of Milk Produced"
+          onChangeText={setAmountOfMilkProduced}
+          value={amountOfMilkProduced}
+        />
+        <Input
+          placeholder="Farmer Name"
+          onChangeText={setFarmerName}
+          value={farmerName}
+        />
+        <Input
+          placeholder="Farmer City"
+          onChangeText={setFarmerCity}
+          value={farmerCity}
+        />
+        <Input
+          placeholder="From"
+          onChangeText={setFromName}
+          value={fromName}
+        />
+        <Input
+          placeholder="To"
+          onChangeText={setToName}
+          value={toName}
+        />
+        <Input
+          placeholder="Number of Cows Head"
+          onChangeText={setNumberOfCowsHead}
+          value={numberOfCowsHead}
+        />
+        <Input
+          placeholder="Latitude"
+          onChangeText={setLatitude}
+          value={latitude}
+          keyboardType="numeric"
+        />
+        <Input
+          placeholder="Longitude"
+          onChangeText={setLongitude}
+          value={longitude}
+          keyboardType="numeric"
+        />
+      </Form>
+
+      <Button title="Create Checklist" onPress={handleCreateChecklist} />
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
