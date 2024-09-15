@@ -24,7 +24,7 @@ export default function TabTwoScreen() {
   async function handleCreateChecklist() {
     try {
       realm.write(() => {
-        realm.create('Object', {
+        realm.create('ChecklistItem', {
           _id: new Realm.BSON.ObjectId(), // Unique ID
           type,
           amount_of_milk_produced: amountOfMilkProduced,

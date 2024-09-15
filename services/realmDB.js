@@ -23,8 +23,8 @@ export const LocationSchema = {
   },
 };
 
-export const ObjectSchema = {
-  name: 'Object',
+export const ChecklistItemSchema = {
+  name: 'ChecklistItem',
   properties: {
     _id: 'string',
     type: 'string',
@@ -37,30 +37,39 @@ export const ObjectSchema = {
     location: 'Location',
     created_at: 'date',
     updated_at: 'date',
-    __v: 'int',
   },
 };
 
+export const ChecklistSchema = {
+  name: 'Checklist',
+  properties: {
+    id: 'string',
+    items: 'ChecklistItem[]',
+  },
+  primaryKey: 'id',
+};
+
 export const realm = new Realm({
-  schema: [ObjectSchema, FarmerSchema, PersonSchema, LocationSchema],
-  schemaVersion: 13,
+  schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema],
+  schemaVersion: 15,
   migration: (oldRealm, newRealm) => {
     const oldVersion = oldRealm.schemaVersion;
-  
-    if (oldVersion < 13) {
-      const oldObjects = oldRealm.objects('Object');
-      const newObjects = newRealm.objects('Object');
-  
-      // Ensure no duplicate _id values
-      const idsSet = new Set();
-  
-      for (let i = 0; i < oldObjects.length; i++) {
-        const oldId = oldObjects[i]._id.toString();
-        if (!idsSet.has(oldId)) {
-          newObjects[i]._id = oldId;
-          idsSet.add(oldId); // Track unique _id
+
+    if (oldVersion < 15) {
+      const oldChecklists = oldRealm.objects('Checklist');
+      const newChecklists = newRealm.objects('Checklist');
+      const uniqueChecklistIds = new Set();
+
+      for (let i = 0; i < oldChecklists.length; i++) {
+        const checklist = oldChecklists[i];
+        const checklistId = checklist.id;
+
+        if (!uniqueChecklistIds.has(checklistId)) {
+          newChecklists[i].id = checklistId;
+          uniqueChecklistIds.add(checklistId);
         } else {
-          console.warn(`Duplicate _id found during migration: ${oldId}`);
+          console.warn(`Duplicate checklist ID found during migration: ${checklistId}`);
+          newRealm.delete(newChecklists[i]);
         }
       }
     }

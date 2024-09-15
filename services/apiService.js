@@ -12,7 +12,7 @@ export const healthCheck = async () => {
 };
 
 export const getObjects = async () => {
-  return axios.get(`${API_URL}/v1/checklist`);
+  return await axios.get(`${API_URL}/v1/checklist`);
 };
 
 export const createObject = async (objectData) => {
