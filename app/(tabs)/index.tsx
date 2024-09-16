@@ -105,6 +105,13 @@ export default function HomeScreen() {
     setLoading(false);
   };
 
+  const handleCreate = () => {
+    router.push({
+      pathname: '/explore',
+      params: {},
+    })
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -131,7 +138,6 @@ export default function HomeScreen() {
       router.push({
         pathname: '/explore',
         params: {
-          checklistId: item._id,
           checklistData: JSON.stringify(item),
         },
       });
@@ -183,6 +189,11 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+
+      <Button
+        title="Create New Checklist"
+        onPress={() =>handleCreate() }
+      />
 
       <TextInput
         style={styles.searchInput}

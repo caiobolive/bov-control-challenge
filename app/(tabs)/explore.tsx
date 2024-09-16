@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
 import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Realm from 'realm';
@@ -44,12 +45,17 @@ export default function ExploreScreen() {
     setLongitude('');
   };
 
+  const exitScreen = () => {
+    resetForm();
+    router.back();
+  }
+
   // useEffect or useFocusEffect to handle form resetting when navigating
   useFocusEffect(
     React.useCallback(() => {
+      // On screen focus, populate or reset the form
       if (!checklist) {
-        // If there is no checklist passed, we are in create mode, so reset the form
-        resetForm();
+        resetForm(); // In create mode, reset the form
       } else {
         // If checklist exists, populate the form with existing data (update mode)
         setType(checklist?.type || '');
@@ -63,6 +69,10 @@ export default function ExploreScreen() {
         setLatitude(checklist?.location?.latitude?.toString() || '');
         setLongitude(checklist?.location?.longitude?.toString() || '');
       }
+
+      return () => {
+        resetForm(); // Reset the form when leaving the screen
+      };
     }, [checklist])
   );
 
@@ -85,8 +95,7 @@ export default function ExploreScreen() {
         });
       });
       Alert.alert('Success', 'Checklist created successfully');
-      resetForm(); // Clear form after creation
-      router.back();
+      exitScreen();
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to create checklist');
@@ -112,8 +121,7 @@ export default function ExploreScreen() {
         }
       });
       Alert.alert('Success', 'Checklist updated successfully');
-      resetForm(); // Clear form after update
-      router.back();
+      exitScreen();
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to update checklist');
@@ -125,8 +133,10 @@ export default function ExploreScreen() {
   return (
     <Container>
       <Header>
-        <Title>{checklist ? 'Update Checklist' : 'Create Checklist'}</Title>
-        <IconButton icon="arrow-back-outline" onPress={() => router.back()} />
+      <Title>
+        {checklist ? `Update Checklist ${checklist._id}` : 'Create Checklist'}
+      </Title>
+        <IconButton icon="arrow-back-outline" onPress={() => exitScreen()} />
       </Header>
 
       <Form>
@@ -141,7 +151,10 @@ export default function ExploreScreen() {
         <Input placeholder="Longitude" onChangeText={setLongitude} value={longitude} keyboardType="numeric" />
       </Form>
 
-      <Button title={checklist ? 'Update Checklist' : 'Create Checklist'} onPress={handleSubmit} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Button title={checklist ? 'Update Checklist' : 'Create Checklist'} onPress={handleSubmit} />
+        <Button title="Cancel" onPress={exitScreen} />
+      </View>
     </Container>
   );
 }
