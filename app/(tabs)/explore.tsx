@@ -1,22 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Realm from 'realm';
 import { realm } from '../../services/realmDB';
-import 'react-native-get-random-values';
 import { Button, Input, IconButton } from '@/components';
 import { Container, Header, Title, Form } from '../../components/styles';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function TabTwoScreen() {
-  const { checklistData } = useLocalSearchParams();
+export default function ExploreScreen() {
+  const { checklistData } = useLocalSearchParams(); // Get checklist data if passed
   const router = useRouter();
 
+  // Parse the checklist data if provided (for update mode), or set to null (for create mode)
   const checklist = Array.isArray(checklistData)
-    ? JSON.parse(checklistData[0]) // If it's an array, use the first element
+    ? JSON.parse(checklistData[0])
     : checklistData
-    ? JSON.parse(checklistData) // If it's a string, parse it directly
+    ? JSON.parse(checklistData)
     : null;
 
+  // State for form fields
   const [type, setType] = useState('');
   const [amountOfMilkProduced, setAmountOfMilkProduced] = useState('');
   const [farmerName, setFarmerName] = useState('');
@@ -28,28 +30,7 @@ export default function TabTwoScreen() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
-  const isUpdateMode = !!checklist;
-  const hasSetInitialValues = useRef(false);
-
-  useEffect(() => {
-    if (isUpdateMode && checklist && !hasSetInitialValues.current) {
-      // If in update mode, set form fields to the checklist values
-      setType(checklist?.type || '');
-      setAmountOfMilkProduced(checklist?.amount_of_milk_produced || '');
-      setFarmerName(checklist?.farmer?.name || '');
-      setFarmerCity(checklist?.farmer?.city || '');
-      setFromName(checklist?.from?.name || '');
-      setToName(checklist?.to?.name || '');
-      setNumberOfCowsHead(checklist?.number_of_cows_head || '');
-      setHadSupervision(checklist?.had_supervision || false);
-      setLatitude(checklist?.location?.latitude?.toString() || '');
-      setLongitude(checklist?.location?.longitude?.toString() || '');
-      hasSetInitialValues.current = true;
-    } else if (!isUpdateMode) {
-      resetForm();
-    }
-  }, [checklist, isUpdateMode]);
-
+  // Function to reset the form (clear all inputs)
   const resetForm = () => {
     setType('');
     setAmountOfMilkProduced('');
@@ -63,7 +44,29 @@ export default function TabTwoScreen() {
     setLongitude('');
   };
 
-  async function handleCreateChecklist() {
+  // useEffect or useFocusEffect to handle form resetting when navigating
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!checklist) {
+        // If there is no checklist passed, we are in create mode, so reset the form
+        resetForm();
+      } else {
+        // If checklist exists, populate the form with existing data (update mode)
+        setType(checklist?.type || '');
+        setAmountOfMilkProduced(checklist?.amount_of_milk_produced || '');
+        setFarmerName(checklist?.farmer?.name || '');
+        setFarmerCity(checklist?.farmer?.city || '');
+        setFromName(checklist?.from?.name || '');
+        setToName(checklist?.to?.name || '');
+        setNumberOfCowsHead(checklist?.number_of_cows_head || '');
+        setHadSupervision(checklist?.had_supervision || false);
+        setLatitude(checklist?.location?.latitude?.toString() || '');
+        setLongitude(checklist?.location?.longitude?.toString() || '');
+      }
+    }, [checklist])
+  );
+
+  const handleCreateChecklist = async () => {
     try {
       realm.write(() => {
         realm.create('ChecklistItem', {
@@ -82,14 +85,15 @@ export default function TabTwoScreen() {
         });
       });
       Alert.alert('Success', 'Checklist created successfully');
+      resetForm(); // Clear form after creation
       router.back();
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to create checklist');
     }
-  }
+  };
 
-  async function handleUpdateChecklist() {
+  const handleUpdateChecklist = async () => {
     try {
       realm.write(() => {
         const checklistToUpdate = realm.objectForPrimaryKey('ChecklistItem', checklist._id) as ChecklistItem;
@@ -108,19 +112,20 @@ export default function TabTwoScreen() {
         }
       });
       Alert.alert('Success', 'Checklist updated successfully');
+      resetForm(); // Clear form after update
       router.back();
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to update checklist');
     }
-  }
+  };
 
-  const handleSubmit = isUpdateMode ? handleUpdateChecklist : handleCreateChecklist;
+  const handleSubmit = checklist ? handleUpdateChecklist : handleCreateChecklist;
 
   return (
     <Container>
       <Header>
-        <Title>{isUpdateMode ? 'Update Checklist' : 'Create Checklist'}</Title>
+        <Title>{checklist ? 'Update Checklist' : 'Create Checklist'}</Title>
         <IconButton icon="arrow-back-outline" onPress={() => router.back()} />
       </Header>
 
@@ -136,7 +141,7 @@ export default function TabTwoScreen() {
         <Input placeholder="Longitude" onChangeText={setLongitude} value={longitude} keyboardType="numeric" />
       </Form>
 
-      <Button title={isUpdateMode ? "Update Checklist" : "Create Checklist"} onPress={handleSubmit} />
+      <Button title={checklist ? 'Update Checklist' : 'Create Checklist'} onPress={handleSubmit} />
     </Container>
   );
 }
