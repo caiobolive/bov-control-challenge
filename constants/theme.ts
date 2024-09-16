@@ -15,7 +15,7 @@ export type ThemeType = {
 
 export const lightTheme: ThemeType = {
     COLORS: {
-      PRIMARY: '#007AFF',  
+      PRIMARY: '#6ba9dd',  
       SECONDARY: '#FF9500', 
       TEXT: '#333333',
       TEXT_ON_PRIMARY: '#FFFFFF',      

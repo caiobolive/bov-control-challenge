@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
-import { Alert } from 'react-native';
+import { Image, View, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Realm from 'realm';
 import { realm } from '../../services/realmDB';
 import { Button, Input, IconButton } from '@/components';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { Container, Header, Title, Form } from '../../components/styles';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -131,7 +131,14 @@ export default function ExploreScreen() {
   const handleSubmit = checklist ? handleUpdateChecklist : handleCreateChecklist;
 
   return (
-    <Container>
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: '#D5EBF2', dark: '#1D3D47' }}
+      headerImage={
+        <Image
+          source={require('@/assets/images/BovControlLogo2024.png')}
+          style={styles.imageLogo}
+        />
+      }>
       <Header>
       <Title>
         {checklist ? `Update Checklist ${checklist._id}` : 'Create Checklist'}
@@ -155,6 +162,16 @@ export default function ExploreScreen() {
         <Button title={checklist ? 'Update Checklist' : 'Create Checklist'} onPress={handleSubmit} />
         <Button title="Cancel" onPress={exitScreen} />
       </View>
-    </Container>
+    </ParallaxScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  imageLogo: {
+    width: 350,
+    height: 120,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+  },
+});
