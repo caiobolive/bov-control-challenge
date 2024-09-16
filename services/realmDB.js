@@ -51,11 +51,11 @@ export const ChecklistSchema = {
 
 export const realm = new Realm({
   schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema],
-  schemaVersion: 15,
+  schemaVersion: 16,
   migration: (oldRealm, newRealm) => {
     const oldVersion = oldRealm.schemaVersion;
 
-    if (oldVersion < 15) {
+    if (oldVersion < 16) {
       const oldChecklists = oldRealm.objects('Checklist');
       const newChecklists = newRealm.objects('Checklist');
       const uniqueChecklistIds = new Set();

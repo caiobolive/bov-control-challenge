@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, FlatList, Text } from 'react-native';
+import { Image, StyleSheet, FlatList, TextInput } from 'react-native';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,7 +9,9 @@ import { realm } from '@/services/realmDB';
 
 export default function HomeScreen() {
   const [checklists, setChecklists] = useState<ChecklistItem[]>([]);
+  const [filteredChecklists, setFilteredChecklists] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchDataFromAPI = async () => {
     try {
@@ -55,6 +57,7 @@ export default function HomeScreen() {
         });
   
         setChecklists(parsedItems);
+        setFilteredChecklists(parsedItems); // Initialize filtered checklists
       } else {
         console.error('Data from API is not an array', checklistData);
       }
@@ -76,11 +79,11 @@ export default function HomeScreen() {
     const realmData = realm.objects('Checklist').filtered('id == "checklist_1"');
     if (realmData.length > 0) {
       const checklist = realmData[0];
-      
       const realmDataArray = Array.from(checklist.items as Realm.List<ChecklistItem>);
       
       if (JSON.stringify(realmDataArray) !== JSON.stringify(checklists)) {
         setChecklists(realmDataArray as ChecklistItem[]);
+        setFilteredChecklists(realmDataArray as ChecklistItem[]); // Initialize filtered checklists
       }
     }
   };
@@ -102,6 +105,22 @@ export default function HomeScreen() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Search filter logic
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = checklists.filter(item =>
+        item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.farmer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.farmer.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.from.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.to.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredChecklists(filtered);
+    } else {
+      setFilteredChecklists(checklists);
+    }
+  }, [searchTerm, checklists]);
 
   const renderChecklistItem = ({ item }: { item: ChecklistItem }) => (
     <ThemedView style={styles.itemContainer}>
@@ -147,11 +166,18 @@ export default function HomeScreen() {
         <HelloWave />
       </ThemedView>
 
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search..."
+        value={searchTerm}
+        onChangeText={setSearchTerm}
+      />
+
       {loading ? (
         <ThemedText>Loading...</ThemedText>
       ) : (
         <FlatList
-          data={checklists}
+          data={filteredChecklists}
           scrollEnabled={false}
           keyExtractor={(item) => item._id.toString()}
           renderItem={renderChecklistItem}
@@ -183,6 +209,13 @@ const styles = StyleSheet.create({
     padding: 15,
     borderWidth: 1,
     borderColor: '#ccc',
+    borderRadius: 5,
+  },
+  searchInput: {
+    marginVertical: 10,
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 5,
   },
 });
