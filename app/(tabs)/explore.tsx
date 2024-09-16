@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Realm from 'realm';
@@ -29,10 +29,11 @@ export default function TabTwoScreen() {
   const [longitude, setLongitude] = useState('');
 
   const isUpdateMode = !!checklist;
+  const hasSetInitialValues = useRef(false);
 
   useEffect(() => {
-    if (checklist) {
-      // Set state with the checklist data when navigating to this screen
+    if (isUpdateMode && checklist && !hasSetInitialValues.current) {
+      // If in update mode, set form fields to the checklist values
       setType(checklist?.type || '');
       setAmountOfMilkProduced(checklist?.amount_of_milk_produced || '');
       setFarmerName(checklist?.farmer?.name || '');
@@ -43,11 +44,11 @@ export default function TabTwoScreen() {
       setHadSupervision(checklist?.had_supervision || false);
       setLatitude(checklist?.location?.latitude?.toString() || '');
       setLongitude(checklist?.location?.longitude?.toString() || '');
-    } else {
-      // Reset state when no checklist is passed
+      hasSetInitialValues.current = true;
+    } else if (!isUpdateMode) {
       resetForm();
     }
-  }, [checklist]);
+  }, [checklist, isUpdateMode]);
 
   const resetForm = () => {
     setType('');
