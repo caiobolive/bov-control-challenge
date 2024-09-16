@@ -8,6 +8,8 @@ import { healthCheck, getObjects } from '@/services/apiService';
 import { realm } from '@/services/realmDB';
 import { Button } from '@/components/Button';
 import { useRouter } from 'expo-router';
+import { View } from 'react-native';
+import { deleteObject } from '@/services/apiService'; // Import the delete API function
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -112,6 +114,30 @@ export default function HomeScreen() {
     })
   };
 
+  const handleDelete = async (checklistId: string) => {
+    try {
+      const isApiHealthy = await healthCheck();
+  
+      realm.write(() => {
+        const checklist = realm.objects('ChecklistItem').filtered('_id == $0', checklistId);
+        if (checklist.length > 0) {
+          realm.delete(checklist);
+        }
+      });
+  
+      if (isApiHealthy) {
+        await deleteObject(checklistId);
+      }
+  
+      const updatedChecklists = checklists.filter(item => String(item._id) !== String(checklistId));
+      setChecklists(updatedChecklists);
+      setFilteredChecklists(updatedChecklists);
+  
+    } catch (error) {
+      console.error('Error deleting checklist:', error);
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -142,6 +168,8 @@ export default function HomeScreen() {
         },
       });
     };
+
+    const handleDeleteItem = () => handleDelete(item._id.toString());
   
     return (
       <ThemedView style={styles.itemContainer}>
@@ -171,7 +199,10 @@ export default function HomeScreen() {
           <ThemedText>{"Updated at: " + new Date(item.updated_at).toLocaleString()}</ThemedText>
         </ThemedView>
   
-        <Button title="Update" onPress={handleUpdate} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Button title="Update" onPress={handleUpdate} />
+          <Button title="Delete" onPress={handleDeleteItem} />
+        </View>
       </ThemedView>
     );
   };
