@@ -45,17 +45,18 @@ export const ChecklistSchema = {
   properties: {
     id: 'string',
     items: 'ChecklistItem[]',
+    syncStatus: { type: 'string', default: 'pending' },
   },
   primaryKey: 'id',
 };
 
 export const realm = new Realm({
   schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema],
-  schemaVersion: 16,
+  schemaVersion: 17,
   migration: (oldRealm, newRealm) => {
     const oldVersion = oldRealm.schemaVersion;
 
-    if (oldVersion < 16) {
+    if (oldVersion < 17) {
       const oldChecklists = oldRealm.objects('Checklist');
       const newChecklists = newRealm.objects('Checklist');
       const uniqueChecklistIds = new Set();

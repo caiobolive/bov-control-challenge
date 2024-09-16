@@ -9,7 +9,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { healthCheck, createObject } from '@/services/apiService';
 import { realm } from '@/services/realmDB';
-import Realm from "realm"; // Ensure Realm is imported
+import Realm from "realm";
+import SyncService from '../components/SyncService';
 
 // Ensure global Realm usage is disabled
 Realm.flags.THROW_ON_GLOBAL_REALM = true;
@@ -24,31 +25,10 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    console.log("Realm file path:", realm.path);
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  useEffect(() => {
-    const syncData = async () => {
-      const isOnline = await healthCheck();
-      if (isOnline) {
-        const realmObjects = realm.objects('Object');
-        realm.write(() => {
-          realmObjects.forEach(async (obj) => {
-            try {
-              await createObject(obj);
-            } catch (error) {
-              console.error('Error syncing object:', error);
-            }
-          });
-        });
-      }
-    };
-
-    syncData();
-  }, []);
 
   if (!loaded) {
     return null;
@@ -62,6 +42,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
+      <SyncService />
     </StyledThemeProvider>
   );
 }
