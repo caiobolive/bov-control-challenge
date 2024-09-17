@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image, View, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Realm from 'realm';
-import { realm, addChecklistItem  } from '../../services/realmDB';
-import { Button, Input, IconButton } from '@/components';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { Header, Title, Form, Container } from '../../components/styles';
 import { createObject, updateObject, healthCheck } from '@/services/apiService';
+import { realm, addChecklistItem  } from '../../services/realmDB';
 import emitter, { events } from '@/services/eventEmitter';
+import { Image, View, StyleSheet, Alert } from 'react-native';
+import { Button, Input, IconButton } from '@/components';
+import { Header, Title, Form, Container } from '../../components/styles';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
 
 export default function ExploreScreen() {
   const { checklistData } = useLocalSearchParams();

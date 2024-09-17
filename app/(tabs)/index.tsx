@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Image, FlatList, TextInput } from 'react-native';
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
+import { useRouter } from 'expo-router';
 import { healthCheck, getObjects, deleteObject } from '@/services/apiService';
 import { realm } from '@/services/realmDB';
-import { Button } from '@/components/Button';
-import { useRouter } from 'expo-router';
-import { ButtonView, TitleContainer, ItemContainer, SearchInput, shadowStyles, Container } from '@/components/styles';
 import emitter, { events } from '@/services/eventEmitter';
+import { Image, FlatList } from 'react-native';
+import { HelloWave } from '@/components/HelloWave';
+import { ThemedText } from '@/components/ThemedText';
+import { Button } from '@/components/Button';
+import { ButtonView, TitleContainer, ItemContainer, SearchInput, shadowStyles, Container } from '@/components/styles';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
 
 export default function HomeScreen() {
   const router = useRouter();
