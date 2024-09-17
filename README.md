@@ -3,7 +3,7 @@
 
 This is a React Native app that manages checklists for farmers, allowing users to create, view, update, and delete checklists. The app integrates with a backend API and RealmDB to handle data both online and offline. The interface is styled using `styled-components` with theme support for light and dark modes.
 
-![App in use]([https://path/to/your/gif.gif](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmhwM211aGg3dmhoN2Q0eDBvcWMxeWk4NWV3OXBkMHFpd2NxaTg3ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5O2MH4t5qzL5X6G4c3/giphy.gif))
+![App in use](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXRpcGExMXZ1dHFnNGk0dHBmYnc2OXNyY2xjZ2lwOHdocjAza2wydyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5O2MH4t5qzL5X6G4c3/giphy.gif)
 
 ## Table of Contents
 - [Features](#features)
