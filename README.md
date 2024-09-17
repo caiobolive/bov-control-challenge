@@ -46,6 +46,11 @@ This is a React Native app that manages checklists for farmers, allowing users t
    npm install -g expo-cli
    ```
 
+3.5. Might be necessary to install the app to be able to run it in dev mode with ReactDB integrated
+   ```bash
+   npx expo run:android or npx expo run:ios
+   ```
+
 4. Install the app in development mode on the emulator:
    - Open your emulator (Android Studio or Xcode).
    - Run the following command to start the project:
