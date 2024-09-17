@@ -9,7 +9,7 @@ import { realm } from '@/services/realmDB';
 import { Button } from '@/components/Button';
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
-import { deleteObject } from '@/services/apiService'; // Import the delete API function
+import { deleteObject } from '@/services/apiService';
 
 export default function HomeScreen() {
   const router = useRouter();

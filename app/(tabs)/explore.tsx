@@ -1,25 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Image, View, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Realm from 'realm';
 import { realm } from '../../services/realmDB';
 import { Button, Input, IconButton } from '@/components';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { Container, Header, Title, Form } from '../../components/styles';
-import { useFocusEffect } from '@react-navigation/native';
+import { Header, Title, Form } from '../../components/styles';
 
 export default function ExploreScreen() {
-  const { checklistData } = useLocalSearchParams(); // Get checklist data if passed
+  const { checklistData } = useLocalSearchParams();
   const router = useRouter();
 
-  // Parse the checklist data if provided (for update mode), or set to null (for create mode)
   const checklist = Array.isArray(checklistData)
     ? JSON.parse(checklistData[0])
     : checklistData
     ? JSON.parse(checklistData)
     : null;
 
-  // State for form fields
+  // Form state variables
   const [type, setType] = useState('');
   const [amountOfMilkProduced, setAmountOfMilkProduced] = useState('');
   const [farmerName, setFarmerName] = useState('');
@@ -31,7 +29,8 @@ export default function ExploreScreen() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
-  // Function to reset the form (clear all inputs)
+  const isFormInitialized = useRef(false);
+
   const resetForm = () => {
     setType('');
     setAmountOfMilkProduced('');
@@ -45,36 +44,32 @@ export default function ExploreScreen() {
     setLongitude('');
   };
 
+  // Populate the form when the checklist data changes
+  useEffect(() => {
+    isFormInitialized.current = false; // Reset the flag when new checklist data comes in
+  }, [checklistData]);
+
+  useEffect(() => {
+    if (!isFormInitialized.current && checklist) {
+      setType(checklist?.type || '');
+      setAmountOfMilkProduced(checklist?.amount_of_milk_produced || '');
+      setFarmerName(checklist?.farmer?.name || '');
+      setFarmerCity(checklist?.farmer?.city || '');
+      setFromName(checklist?.from?.name || '');
+      setToName(checklist?.to?.name || '');
+      setNumberOfCowsHead(checklist?.number_of_cows_head || '');
+      setHadSupervision(checklist?.had_supervision || false);
+      setLatitude(checklist?.location?.latitude?.toString() || '');
+      setLongitude(checklist?.location?.longitude?.toString() || '');
+
+      isFormInitialized.current = true; // Mark the form as initialized
+    }
+  }, [checklist]);
+
   const exitScreen = () => {
     resetForm();
     router.back();
-  }
-
-  // useEffect or useFocusEffect to handle form resetting when navigating
-  useFocusEffect(
-    React.useCallback(() => {
-      // On screen focus, populate or reset the form
-      if (!checklist) {
-        resetForm(); // In create mode, reset the form
-      } else {
-        // If checklist exists, populate the form with existing data (update mode)
-        setType(checklist?.type || '');
-        setAmountOfMilkProduced(checklist?.amount_of_milk_produced || '');
-        setFarmerName(checklist?.farmer?.name || '');
-        setFarmerCity(checklist?.farmer?.city || '');
-        setFromName(checklist?.from?.name || '');
-        setToName(checklist?.to?.name || '');
-        setNumberOfCowsHead(checklist?.number_of_cows_head || '');
-        setHadSupervision(checklist?.had_supervision || false);
-        setLatitude(checklist?.location?.latitude?.toString() || '');
-        setLongitude(checklist?.location?.longitude?.toString() || '');
-      }
-
-      return () => {
-        resetForm(); // Reset the form when leaving the screen
-      };
-    }, [checklist])
-  );
+  };
 
   const handleCreateChecklist = async () => {
     try {
@@ -140,9 +135,7 @@ export default function ExploreScreen() {
         />
       }>
       <Header>
-      <Title>
-        {checklist ? `Update Checklist ${checklist._id}` : 'Create Checklist'}
-      </Title>
+        <Title>{checklist ? `Update Checklist ${checklist._id}` : 'Create Checklist'}</Title>
         <IconButton icon="arrow-back-outline" onPress={() => exitScreen()} />
       </Header>
 
