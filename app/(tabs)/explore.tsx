@@ -81,41 +81,35 @@ export default function ExploreScreen() {
     const checklistData = {
       _id: generateNumericId().toString(),
       type: type,
-      amount_of_milk_produced: amountOfMilkProduced.toString(),
-      number_of_cows_head: numberOfCowsHead.toString(),
+      amount_of_milk_produced: parseInt(amountOfMilkProduced, 10), // Convert to number for API
+      number_of_cows_head: parseInt(numberOfCowsHead, 10), // Convert to number for API
       had_supervision: hadSupervision,
       farmer: { name: farmerName, city: farmerCity },
       from: { name: fromName },
       to: { name: toName },
-      location: { 
+      location: {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
       },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: new Date(),
+      updated_at: new Date(),
+      syncStatus: 'synced', // Default is synced
     };
   
     try {
-      // Send the checklist wrapped in an array with a "checklists" key
-      const payload = {
-        checklists: [
-          {
-            ...checklistData,
-            amount_of_milk_produced: parseInt(amountOfMilkProduced, 10),
-            number_of_cows_head: parseInt(numberOfCowsHead, 10),
-          }
-        ]
-      };
+      const isHealthy = await healthCheck(); // Check if online
+      if (!isHealthy) {
+        checklistData.syncStatus = 'pending'; // Mark as pending if offline
+      }
   
-      console.log("Payload sent to API: ", payload);
-      
-      const isHealthy = await healthCheck();
       if (isHealthy) {
-        const response = await createObject(payload);
-        console.log("API Response: ", response.data);
-        Alert.alert('Success', 'Checklist created successfully in the API');
+        const { syncStatus, ...checklistDataWithoutSyncStatus } = checklistData;
+        const response = await createObject({ checklists: [checklistDataWithoutSyncStatus] });
+        console.log('API Response: ', response.data);
+        Alert.alert('Success', 'Checklist created successfully and synced');
       } else {
-        Alert.alert('Success', 'Checklist created successfully in local storage');
+        addChecklistItem(checklistData);
+        Alert.alert('Success', 'Checklist created offline and marked as pending');
       }
   
       emitter.emit(events.CHECKLIST_CREATED);
@@ -132,36 +126,39 @@ export default function ExploreScreen() {
         const checklistToUpdate = realm.objectForPrimaryKey('ChecklistItem', checklist._id) as ChecklistItem;
         if (checklistToUpdate) {
           checklistToUpdate.type = type;
-          checklistToUpdate.amount_of_milk_produced = amountOfMilkProduced;
+          checklistToUpdate.amount_of_milk_produced = amountOfMilkProduced.toString(); // Convert back to string for Realm
           checklistToUpdate.farmer.name = farmerName;
           checklistToUpdate.farmer.city = farmerCity;
           checklistToUpdate.from.name = fromName;
           checklistToUpdate.to.name = toName;
-          checklistToUpdate.number_of_cows_head = numberOfCowsHead;
+          checklistToUpdate.number_of_cows_head = numberOfCowsHead.toString(); // Convert back to string for Realm
           checklistToUpdate.had_supervision = hadSupervision;
           checklistToUpdate.location.latitude = parseFloat(latitude);
           checklistToUpdate.location.longitude = parseFloat(longitude);
           checklistToUpdate.updated_at = new Date();
         }
       });
-
+  
       const isHealthy = await healthCheck();
-      if (isHealthy) {
+      if (!isHealthy) {
+        realm.write(() => {
+          checklist.syncStatus = 'pending'; // Mark as pending if offline
+        });
+        Alert.alert('Success', 'Checklist updated offline and marked as pending');
+      } else {
         await updateObject(checklist._id, {
           type,
-          amount_of_milk_produced: parseInt(amountOfMilkProduced),
+          amount_of_milk_produced: parseInt(amountOfMilkProduced, 10), // Convert to number for API
           farmer: { name: farmerName, city: farmerCity },
           from: { name: fromName },
           to: { name: toName },
-          number_of_cows_head: parseInt(numberOfCowsHead),
+          number_of_cows_head: parseInt(numberOfCowsHead, 10), // Convert to number for API
           had_supervision: hadSupervision,
           location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
         });
         Alert.alert('Success', 'Checklist updated and synced successfully');
-      } else {
-        Alert.alert('Success', 'Checklist updated offline successfully');
       }
-
+  
       emitter.emit(events.CHECKLIST_CREATED);
       exitScreen();
     } catch (error) {

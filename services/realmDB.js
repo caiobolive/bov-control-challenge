@@ -39,7 +39,7 @@ export const ChecklistItemSchema = {
     location: 'Location',
     created_at: 'date',
     updated_at: 'date',
-    syncStatus: { type: 'string', default: 'pending' },
+    syncStatus: { type: 'string', default: 'synced' },
   },
 };
 
@@ -71,15 +71,15 @@ const createChecklistItem = (item) => {
   realm.create('ChecklistItem', item);
 };
 
-Realm.deleteFile({ schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema] });
+// Realm.deleteFile({ schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema] });
 
 export const realm = new Realm({
   schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema],
-  schemaVersion: 26,
+  schemaVersion: 27,
   migration: (oldRealm, newRealm) => {
     const oldVersion = oldRealm.schemaVersion;
   
-    if (oldVersion < 26) {
+    if (oldVersion < 27) {
       const oldChecklists = oldRealm.objects('Checklist');
       const newChecklists = newRealm.objects('Checklist');
       const uniqueChecklistIds = new Set();
