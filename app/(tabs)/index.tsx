@@ -180,12 +180,12 @@ export default function HomeScreen() {
   
     return (
       <ItemContainer style={shadowStyles.shadow}>
-        <ThemedText>{"Id: " + item._id}</ThemedText>
+        <ThemedText type={"subtitleHighlight"} lightColor="#6ba9dd" darkColor="#0A84FF">{"Farmer name: " + item.farmer.name}</ThemedText>
+        <ThemedText type={"subtitleHighlight"} lightColor="#6ba9dd" darkColor="#0A84FF">{"Farmer city: " + item.farmer.city}</ThemedText>
+        <ThemedText lightColor="#6ba9dd" darkColor="#0A84FF">{"Created at: " + new Date(item.created_at).toLocaleString()}</ThemedText>
+        <ThemedText lightColor="#6ba9dd" darkColor="#0A84FF">{"Updated at: " + new Date(item.updated_at).toLocaleString()}</ThemedText>
         <ThemedText>{"Type: " + item.type}</ThemedText>
         <ThemedText>{"Milk produced: " + item.amount_of_milk_produced}</ThemedText>
-        <ThemedText>{"Farmer:"}</ThemedText>
-        <ThemedText>{"Farmer name: " + item.farmer.name}</ThemedText>
-        <ThemedText>{"Farmer city: " + item.farmer.city}</ThemedText>
         <ThemedText>{"From: " + item.from.name}</ThemedText>
         <ThemedText>{"To: " + item.to.name}</ThemedText>
         <ThemedText>{"Number of cows: " + item.number_of_cows_head}</ThemedText>
@@ -193,8 +193,7 @@ export default function HomeScreen() {
         <ThemedText>{"Location:"}</ThemedText>
         <ThemedText>{"Latitude: " + item.location.latitude}</ThemedText>
         <ThemedText>{"Longitude: " + item.location.longitude}</ThemedText>
-        <ThemedText>{"Created at: " + new Date(item.created_at).toLocaleString()}</ThemedText>
-        <ThemedText>{"Updated at: " + new Date(item.updated_at).toLocaleString()}</ThemedText>
+        <ThemedText>{"Id: " + item._id}</ThemedText>
 
         <ButtonView>
           <Button title="Update" onPress={handleUpdate} />

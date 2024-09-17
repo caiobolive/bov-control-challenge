@@ -7,8 +7,9 @@ export const ButtonView = styled.TouchableOpacity`
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-betweem;
+  justify-content: space-between;
   width: 100%;
+  margin-top: 8px;
 `;
 
 export const ButtonContainer = styled.TouchableOpacity`

@@ -6,7 +6,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'subtitleHighlight' | 'link';
 };
 
 export function ThemedText({
@@ -29,6 +29,9 @@ export function ThemedText({
       break;
     case 'subtitle':
       StyledTextComponent = SubtitleText;
+      break;
+    case 'subtitleHighlight':
+      StyledTextComponent = SubtitleTextHighlight;
       break;
     case 'link':
       StyledTextComponent = LinkText;
@@ -60,6 +63,11 @@ const TitleText = styled.Text`
 `;
 
 const SubtitleText = styled.Text`
+  font-size: 20px;
+  font-weight: bold;
+`;
+
+const SubtitleTextHighlight = styled.Text`
   font-size: 20px;
   font-weight: bold;
 `;
