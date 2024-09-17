@@ -1,50 +1,106 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# BovControl Challenge app
 
-## Get started
+This is a React Native app that manages checklists for farmers, allowing users to create, view, update, and delete checklists. The app integrates with a backend API and RealmDB to handle data both online and offline. The interface is styled using `styled-components` with theme support for light and dark modes.
 
-1. Install dependencies
+![App in use]([https://path/to/your/gif.gif](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmhwM211aGg3dmhoN2Q0eDBvcWMxeWk4NWV3OXBkMHFpd2NxaTg3ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5O2MH4t5qzL5X6G4c3/giphy.gif))
 
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Styling](#styling)
+- [Offline Data Storage](#offline-data-storage)
+
+## Features
+- **Authentication:** Supports Google OAuth for user authentication.
+- **Checklist Management:** Create, view, update, and delete checklists.
+- **Offline Support:** Utilizes RealmDB for offline data storage and synchronization with the backend when online.
+- **Dynamic Styling:** Supports light and dark themes using `styled-components`.
+- **Collapsible Views:** Allows collapsing of checklist items to show/hide details.
+
+## Prerequisites
+- Node.js (>=14.x)
+- npm or yarn
+- Expo CLI (`npm install -g expo-cli`)
+- Android Studio or Xcode for mobile emulation
+
+## Installation
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/your-username/checklist-app.git
+   cd checklist-app
+   ```
+
+2. Install the project dependencies:
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-2. Start the app
-
+3. Install the Expo CLI globally if you haven't already:
    ```bash
-    npx expo start
+   npm install -g expo-cli
    ```
 
-In the output, you'll find options to open the app in a
+4. Install the app in development mode on the emulator:
+   - Open your emulator (Android Studio or Xcode).
+   - Run the following command to start the project:
+     ```bash
+     npx expo start --dev-client
+     ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+5. When the QR code appears in the terminal, use the emulator to scan it or select the correct option in the terminal to install the app on the emulated device.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Usage
+1. Start the Expo development server in dev client mode:
+   ```bash
+   npx expo start --dev-client
+   ```
+   - Make sure your emulator is running. If you already have the app installed in the emulator, it will launch the app in development mode.
 
-## Get a fresh project
+2. Log in using Google OAuth if authentication is enabled.
 
-When you're ready, run:
+3. Use the app to create, view, update, and delete checklists. The app supports offline mode, syncing data when a connection is available.
 
-```bash
-npm run reset-project
+## Project Structure
+```
++---app
+|   +---(tabs)
+|   |       explore.tsx
+|   |       index.tsx
+|   |       _layout.tsx
+|   +---_layout.tsx
+|   +---html.tsx
+|   +---not-found.tsx
++---assets
+|   +---fonts
+|   +---images
++---components
+|   +---navigation
+|   +---__tests__
+|   +---Button.tsx
+|   +---HelloWave.tsx
+|   +---ThemedText.tsx
+|   +---ThemedView.tsx
++---constants
+|   +---theme.ts
++---hooks
+|   +---useThemeColor.ts
+|   +---useColorScheme.ts
++---services
+|   +---apiService.ts
+|   +---realmDB.ts
++---styles
+|   +---styles.ts
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Styling
+- Uses `styled-components` for styling with support for light and dark themes.
+- `ThemedText` supports dynamic color changes based on the current theme and custom colors.
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Offline Data Storage
+The app uses RealmDB to store checklist data locally, allowing for offline access. Data is synchronized with the backend when the app detects an active internet connection.
