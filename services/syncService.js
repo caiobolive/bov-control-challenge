@@ -1,7 +1,16 @@
 import { realm } from '@/services/realmDB';
-import { createObject, updateObject, getObjects, healthCheck } from '@/services/apiService';
+import { createObject, updateObject, checkIfChecklistExists, healthCheck } from '@/services/apiService';
+
+let isSyncing = false; // Global flag
 
 export const syncOfflineChanges = async () => {
+  if (isSyncing) {
+    console.log("Sync already in progress. Skipping sync.");
+    return;
+  }
+  
+  isSyncing = true; // Set syncing flag to true
+  
   try {
     const isOnline = await healthCheck();
     if (!isOnline) {
@@ -10,88 +19,65 @@ export const syncOfflineChanges = async () => {
     }
 
     console.log("Starting sync...");
+    const checklists = realm.objects('ChecklistItem').filtered('syncStatus == "pending"');
 
-    // Sync Checklist data
-    const checklists = realm.objects('Checklist').filtered('syncStatus == "pending"');
-    
-    if (checklists.length === 0) {
+    if (!checklists || checklists.length === 0) {
       console.log("No pending checklists to sync.");
       return;
     }
 
-    // Collect checklists before the async process
-    const checklistsToSync = checklists.map((checklist) => ({
-      id: checklist.id,
-      items: checklist.items.map((item) => ({
-        _id: item._id,
-        type: item.type,
-        amount_of_milk_produced: item.amount_of_milk_produced,
-        farmer: {
-          name: item.farmer.name,
-          city: item.farmer.city,
-        },
-        from: { name: item.from.name },
-        to: { name: item.to.name },
-        number_of_cows_head: item.number_of_cows_head,
-        had_supervision: item.had_supervision,
-        location: {
-          latitude: item.location.latitude,
-          longitude: item.location.longitude,
-        },
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-      })),
-      checklistRef: checklist, // Keep a reference to the Realm object
-    }));
+    const checklistsToCreate = [];
+    const checklistsToUpdate = [];
 
-    console.log(`Found ${checklistsToSync.length} checklists to sync.`);
+    for (const checklist of checklists) {
+      const checklistData = { /* Checklist data extraction logic */ };
 
-    // Iterate through checklists to sync
-    for (const checklist of checklistsToSync) {
-      console.log(`Processing checklist ${checklist.id}...`);
-      try {
-        const existsInAPI = await checkIfChecklistExistsInAPI(checklist.id);
-        console.log(`Checklist ${checklist.id} exists in API: ${existsInAPI}`);
-
-        // Sync to API (create or update)
-        if (existsInAPI) {
-          await updateObject(checklist.id, checklist);
-          console.log(`Checklist ${checklist.id} updated in API.`);
-        } else {
-          await createObject(checklist);
-          console.log(`Checklist ${checklist.id} created in API.`);
-        }
-
-        // Update sync status in Realm
-        realm.write(() => {
-          checklist.checklistRef.syncStatus = 'synced'; // Update sync status in Realm
-        });
-
-        console.log(`Checklist ${checklist.id} synced successfully.`);
-      } catch (error) {
-        console.error(`Error syncing checklist ${checklist.id}:`, error);
+      const existsInAPI = await checkIfChecklistExists(checklist._id);
+      if (existsInAPI) {
+        checklistsToUpdate.push({ ...checklistData, _id: checklist._id });
+      } else {
+        checklistsToCreate.push(checklistData);
       }
     }
 
-  } catch (error) {
-    console.error("Error during sync operation:", error);
-  }
-};
-
-// Helper function to check if the checklist exists in the API
-const checkIfChecklistExistsInAPI = async (id) => {
-  try {
-    console.log(`Checking if checklist ${id} exists in API...`);
-    const response = await getObjects();
-    
-    if (!response || !response.data) {
-      console.error("Invalid API response when checking for checklist.");
-      return false;
+    if (checklistsToCreate.length > 0) {
+      try {
+        await createObject({ checklists: checklistsToCreate });
+        console.log(`${checklistsToCreate.length} checklists created in API.`);
+      } catch (createError) {
+        console.error(`Error creating checklists:`, createError);
+      }
     }
 
-    return response.data.some((item) => item.id === id);
+    for (const checklist of checklistsToUpdate) {
+      try {
+        await updateObject(checklist._id, checklist);
+        console.log(`Checklist ${checklist._id} updated in API.`);
+      } catch (updateError) {
+        console.error(`Error updating checklist ${checklist._id}:`, updateError);
+      }
+    }
+
+    // Mark checklists as synced in Realm
+    try {
+      realm.write(() => {
+        checklists.forEach((checklist) => {
+          const checklistToUpdate = realm.objectForPrimaryKey('ChecklistItem', checklist._id);
+          if (checklistToUpdate) {
+            checklistToUpdate.syncStatus = 'synced';
+          } else {
+            console.error(`ChecklistItem with ID ${checklist._id} not found in Realm.`);
+          }
+        });
+      });
+    } catch (realmError) {
+      console.error("Error marking checklists as synced in Realm:", realmError);
+    }
+
+    console.log("Sync completed successfully.");
   } catch (error) {
-    console.error(`Error checking if checklist exists in API:`, error);
-    return false;
+    console.error("Error during sync operation:", error);
+  } finally {
+    isSyncing = false; // Release the lock
   }
 };

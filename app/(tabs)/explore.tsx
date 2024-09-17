@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Image, View, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Realm from 'realm';
-import { realm } from '../../services/realmDB';
+import { realm, addChecklistItem  } from '../../services/realmDB';
 import { Button, Input, IconButton } from '@/components';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { Header, Title, Form } from '../../components/styles';
+import { Header, Title, Form, Container } from '../../components/styles';
+import { createObject, updateObject, healthCheck } from '@/services/apiService';
+import emitter, { events } from '@/services/eventEmitter';
 
 export default function ExploreScreen() {
   const { checklistData } = useLocalSearchParams();
@@ -72,24 +74,51 @@ export default function ExploreScreen() {
   };
 
   const handleCreateChecklist = async () => {
+    const generateNumericId = () => {
+      return Date.now();
+    };
+  
+    const checklistData = {
+      _id: generateNumericId().toString(),
+      type: type,
+      amount_of_milk_produced: amountOfMilkProduced.toString(),
+      number_of_cows_head: numberOfCowsHead.toString(),
+      had_supervision: hadSupervision,
+      farmer: { name: farmerName, city: farmerCity },
+      from: { name: fromName },
+      to: { name: toName },
+      location: { 
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  
     try {
-      realm.write(() => {
-        realm.create('ChecklistItem', {
-          _id: new Realm.BSON.ObjectId(),
-          type,
-          amount_of_milk_produced: amountOfMilkProduced,
-          farmer: { name: farmerName, city: farmerCity },
-          from: { name: fromName },
-          to: { name: toName },
-          number_of_cows_head: numberOfCowsHead,
-          had_supervision: hadSupervision,
-          location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
-          created_at: new Date(),
-          updated_at: new Date(),
-          __v: 0,
-        });
-      });
-      Alert.alert('Success', 'Checklist created successfully');
+      // Send the checklist wrapped in an array with a "checklists" key
+      const payload = {
+        checklists: [
+          {
+            ...checklistData,
+            amount_of_milk_produced: parseInt(amountOfMilkProduced, 10),
+            number_of_cows_head: parseInt(numberOfCowsHead, 10),
+          }
+        ]
+      };
+  
+      console.log("Payload sent to API: ", payload);
+      
+      const isHealthy = await healthCheck();
+      if (isHealthy) {
+        const response = await createObject(payload);
+        console.log("API Response: ", response.data);
+        Alert.alert('Success', 'Checklist created successfully in the API');
+      } else {
+        Alert.alert('Success', 'Checklist created successfully in local storage');
+      }
+  
+      emitter.emit(events.CHECKLIST_CREATED);
       exitScreen();
     } catch (error) {
       console.error(error);
@@ -115,7 +144,25 @@ export default function ExploreScreen() {
           checklistToUpdate.updated_at = new Date();
         }
       });
-      Alert.alert('Success', 'Checklist updated successfully');
+
+      const isHealthy = await healthCheck();
+      if (isHealthy) {
+        await updateObject(checklist._id, {
+          type,
+          amount_of_milk_produced: parseInt(amountOfMilkProduced),
+          farmer: { name: farmerName, city: farmerCity },
+          from: { name: fromName },
+          to: { name: toName },
+          number_of_cows_head: parseInt(numberOfCowsHead),
+          had_supervision: hadSupervision,
+          location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
+        });
+        Alert.alert('Success', 'Checklist updated and synced successfully');
+      } else {
+        Alert.alert('Success', 'Checklist updated offline successfully');
+      }
+
+      emitter.emit(events.CHECKLIST_CREATED);
       exitScreen();
     } catch (error) {
       console.error(error);
@@ -134,27 +181,29 @@ export default function ExploreScreen() {
           style={styles.imageLogo}
         />
       }>
-      <Header>
-        <Title>{checklist ? `Update Checklist ${checklist._id}` : 'Create Checklist'}</Title>
-        <IconButton icon="arrow-back-outline" onPress={() => exitScreen()} />
-      </Header>
+      <Container>        
+        <Header>
+          <Title>{checklist ? `Update Checklist ${checklist._id}` : 'Create Checklist'}</Title>
+          <IconButton icon="arrow-back-outline" onPress={() => exitScreen()} />
+        </Header>
 
-      <Form>
-        <Input placeholder="Type" onChangeText={setType} value={type} />
-        <Input placeholder="Amount of Milk Produced" onChangeText={setAmountOfMilkProduced} value={amountOfMilkProduced} />
-        <Input placeholder="Farmer Name" onChangeText={setFarmerName} value={farmerName} />
-        <Input placeholder="Farmer City" onChangeText={setFarmerCity} value={farmerCity} />
-        <Input placeholder="From" onChangeText={setFromName} value={fromName} />
-        <Input placeholder="To" onChangeText={setToName} value={toName} />
-        <Input placeholder="Number of Cows Head" onChangeText={setNumberOfCowsHead} value={numberOfCowsHead} />
-        <Input placeholder="Latitude" onChangeText={setLatitude} value={latitude} keyboardType="numeric" />
-        <Input placeholder="Longitude" onChangeText={setLongitude} value={longitude} keyboardType="numeric" />
-      </Form>
+        <Form>
+          <Input placeholder="Type" onChangeText={setType} value={type} />
+          <Input placeholder="Amount of Milk Produced" onChangeText={setAmountOfMilkProduced} value={amountOfMilkProduced} />
+          <Input placeholder="Farmer Name" onChangeText={setFarmerName} value={farmerName} />
+          <Input placeholder="Farmer City" onChangeText={setFarmerCity} value={farmerCity} />
+          <Input placeholder="From" onChangeText={setFromName} value={fromName} />
+          <Input placeholder="To" onChangeText={setToName} value={toName} />
+          <Input placeholder="Number of Cows Head" onChangeText={setNumberOfCowsHead} value={numberOfCowsHead} />
+          <Input placeholder="Latitude" onChangeText={setLatitude} value={latitude} keyboardType="numeric" />
+          <Input placeholder="Longitude" onChangeText={setLongitude} value={longitude} keyboardType="numeric" />
+        </Form>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Button title={checklist ? 'Update Checklist' : 'Create Checklist'} onPress={handleSubmit} />
-        <Button title="Cancel" onPress={exitScreen} />
-      </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Button title={checklist ? 'Update Checklist' : 'Create Checklist'} onPress={handleSubmit} />
+          <Button title="Cancel" onPress={exitScreen} />
+        </View>
+      </Container>
     </ParallaxScrollView>
   );
 }

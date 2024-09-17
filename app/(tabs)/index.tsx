@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, FlatList, TextInput } from 'react-native';
+import { Image, FlatList, TextInput } from 'react-native';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { healthCheck, getObjects } from '@/services/apiService';
+import { healthCheck, getObjects, deleteObject } from '@/services/apiService';
 import { realm } from '@/services/realmDB';
 import { Button } from '@/components/Button';
 import { useRouter } from 'expo-router';
-import { View } from 'react-native';
-import { deleteObject } from '@/services/apiService';
+import { ButtonView, TitleContainer, ItemContainer, SearchInput, shadowStyles, Container } from '@/components/styles';
+import emitter, { events } from '@/services/eventEmitter';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -139,7 +138,15 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    loadData();
+    loadData(); 
+
+    const subscription = emitter.addListener(events.CHECKLIST_CREATED, () => {
+      loadData();
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   // Search filter logic
@@ -172,38 +179,28 @@ export default function HomeScreen() {
     const handleDeleteItem = () => handleDelete(item._id.toString());
   
     return (
-      <ThemedView style={styles.itemContainer}>
+      <ItemContainer style={shadowStyles.shadow}>
         <ThemedText>{"Id: " + item._id}</ThemedText>
         <ThemedText>{"Type: " + item.type}</ThemedText>
         <ThemedText>{"Milk produced: " + item.amount_of_milk_produced}</ThemedText>
-        <ThemedView style={styles.itemContainer}>
-          <ThemedText>{"Farmer:"}</ThemedText>
-          <ThemedText>{"Name: " + item.farmer.name}</ThemedText>
-          <ThemedText>{"City: " + item.farmer.city}</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.itemContainer}>
-          <ThemedText>{"From: " + item.from.name}</ThemedText>
-          <ThemedText>{"To: " + item.to.name}</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.itemContainer}>
-          <ThemedText>{"Number of cows: " + item.number_of_cows_head}</ThemedText>
-          <ThemedText>{"Supervision: " + item.had_supervision}</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.itemContainer}>
-          <ThemedText>{"Location:"}</ThemedText>
-          <ThemedText>{"Latitude: " + item.location.latitude}</ThemedText>
-          <ThemedText>{"Longitude: " + item.location.longitude}</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.itemContainer}>
-          <ThemedText>{"Created at: " + new Date(item.created_at).toLocaleString()}</ThemedText>
-          <ThemedText>{"Updated at: " + new Date(item.updated_at).toLocaleString()}</ThemedText>
-        </ThemedView>
-  
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <ThemedText>{"Farmer:"}</ThemedText>
+        <ThemedText>{"Farmer name: " + item.farmer.name}</ThemedText>
+        <ThemedText>{"Farmer city: " + item.farmer.city}</ThemedText>
+        <ThemedText>{"From: " + item.from.name}</ThemedText>
+        <ThemedText>{"To: " + item.to.name}</ThemedText>
+        <ThemedText>{"Number of cows: " + item.number_of_cows_head}</ThemedText>
+        <ThemedText>{"Supervision: " + item.had_supervision}</ThemedText>
+        <ThemedText>{"Location:"}</ThemedText>
+        <ThemedText>{"Latitude: " + item.location.latitude}</ThemedText>
+        <ThemedText>{"Longitude: " + item.location.longitude}</ThemedText>
+        <ThemedText>{"Created at: " + new Date(item.created_at).toLocaleString()}</ThemedText>
+        <ThemedText>{"Updated at: " + new Date(item.updated_at).toLocaleString()}</ThemedText>
+
+        <ButtonView>
           <Button title="Update" onPress={handleUpdate} />
           <Button title="Delete" onPress={handleDeleteItem} />
-        </View>
-      </ThemedView>
+        </ButtonView>
+      </ItemContainer>
     );
   };
 
@@ -213,25 +210,23 @@ export default function HomeScreen() {
       headerImage={
         <Image
           source={require('@/assets/images/BovControlLogo2024.png')}
-          style={styles.imageLogo}
+          style={{ width: 350, height: 120, position: 'absolute', bottom: 0, left: 0 }}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
+      <TitleContainer>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
-      </ThemedView>
+      </TitleContainer>
 
-      <Button
-        title="Create New Checklist"
-        onPress={() =>handleCreate() }
-      />
+      <Container>
+        <Button title="Create New Checklist" onPress={handleCreate} />
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search..."
-        value={searchTerm}
-        onChangeText={setSearchTerm}
-      />
+        <SearchInput
+          placeholder="Search..."
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+        />
+      </Container>
 
       {loading ? (
         <ThemedText>Loading...</ThemedText>
@@ -250,32 +245,3 @@ export default function HomeScreen() {
     </ParallaxScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  imageLogo: {
-    width: 350,
-    height: 120,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-  itemContainer: {
-    marginVertical: 10,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-  },
-  searchInput: {
-    marginVertical: 10,
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-});

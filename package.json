@@ -42,7 +42,8 @@
     "react-native-screens": "3.31.1",
     "react-native-web": "~0.19.10",
     "realm": "^12.13.1",
-    "styled-components": "^6.1.13"
+    "styled-components": "^6.1.13",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

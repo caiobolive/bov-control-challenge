@@ -7,11 +7,17 @@
         "./*"
       ]
     },
+    "types": ["@types/styled-components-react-native"],
+    "baseUrl": "./",
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "app",
+    "constants",
+    "components",
+    "hooks"
   ]
 }

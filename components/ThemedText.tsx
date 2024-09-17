@@ -1,5 +1,6 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
-
+import React from 'react';
+import { Text, type TextProps } from 'react-native';
+import styled from 'styled-components/native';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type ThemedTextProps = TextProps & {
@@ -17,44 +18,54 @@ export function ThemedText({
 }: ThemedTextProps) {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
-  return (
-    <Text
-      style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
-        style,
-      ]}
-      {...rest}
-    />
-  );
+  let StyledTextComponent;
+
+  switch (type) {
+    case 'title':
+      StyledTextComponent = TitleText;
+      break;
+    case 'defaultSemiBold':
+      StyledTextComponent = DefaultSemiBoldText;
+      break;
+    case 'subtitle':
+      StyledTextComponent = SubtitleText;
+      break;
+    case 'link':
+      StyledTextComponent = LinkText;
+      break;
+    case 'default':
+    default:
+      StyledTextComponent = DefaultText;
+  }
+
+  return <StyledTextComponent style={[{ color }, style]} {...rest} />;
 }
 
-const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
-  },
-});
+// Styled components
+const DefaultText = styled.Text`
+  font-size: 16px;
+  line-height: 24px;
+`;
+
+const DefaultSemiBoldText = styled.Text`
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+`;
+
+const TitleText = styled.Text`
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 32px;
+`;
+
+const SubtitleText = styled.Text`
+  font-size: 20px;
+  font-weight: bold;
+`;
+
+const LinkText = styled.Text`
+  font-size: 16px;
+  line-height: 30px;
+  color: #0a7ea4;
+`;

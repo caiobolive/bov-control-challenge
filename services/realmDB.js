@@ -1,4 +1,5 @@
 import Realm from 'realm';
+import { v4 as uuidv4 } from 'uuid';
 
 export const FarmerSchema = {
   name: 'Farmer',
@@ -25,6 +26,7 @@ export const LocationSchema = {
 
 export const ChecklistItemSchema = {
   name: 'ChecklistItem',
+  primaryKey: '_id',
   properties: {
     _id: 'string',
     type: 'string',
@@ -37,6 +39,7 @@ export const ChecklistItemSchema = {
     location: 'Location',
     created_at: 'date',
     updated_at: 'date',
+    syncStatus: { type: 'string', default: 'pending' },
   },
 };
 
@@ -45,33 +48,62 @@ export const ChecklistSchema = {
   properties: {
     id: 'string',
     items: 'ChecklistItem[]',
-    syncStatus: { type: 'string', default: 'pending' },
   },
   primaryKey: 'id',
 };
 
+export const addChecklistItem = (item) => {
+  if (!realm.isInTransaction) {
+    realm.write(() => {
+      createChecklistItem(item);
+    });
+  } else {
+    createChecklistItem(item);
+  }
+};
+
+const createChecklistItem = (item) => {
+  const existingItem = realm.objectForPrimaryKey('ChecklistItem', item._id);
+  if (existingItem) {
+    console.warn(`Duplicate ChecklistItem detected with ID: ${item._id}. Skipping insert.`);
+    return; 
+  }
+  realm.create('ChecklistItem', item);
+};
+
+Realm.deleteFile({ schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema] });
+
 export const realm = new Realm({
   schema: [ChecklistSchema, ChecklistItemSchema, FarmerSchema, PersonSchema, LocationSchema],
-  schemaVersion: 17,
+  schemaVersion: 26,
   migration: (oldRealm, newRealm) => {
     const oldVersion = oldRealm.schemaVersion;
-
-    if (oldVersion < 17) {
+  
+    if (oldVersion < 26) {
       const oldChecklists = oldRealm.objects('Checklist');
       const newChecklists = newRealm.objects('Checklist');
       const uniqueChecklistIds = new Set();
-
+      const uniqueChecklistItemIds = new Set();
+  
       for (let i = 0; i < oldChecklists.length; i++) {
         const checklist = oldChecklists[i];
         const checklistId = checklist.id;
-
-        if (!uniqueChecklistIds.has(checklistId)) {
-          newChecklists[i].id = checklistId;
-          uniqueChecklistIds.add(checklistId);
-        } else {
-          console.warn(`Duplicate checklist ID found during migration: ${checklistId}`);
+  
+        if (uniqueChecklistIds.has(checklistId)) {
+          console.warn(`Duplicate checklist ID found during migration: ${checklistId}. Ignoring duplicate.`);
           newRealm.delete(newChecklists[i]);
+          continue;
         }
+        uniqueChecklistIds.add(checklistId);
+  
+        checklist.items.forEach((item) => {
+          if (uniqueChecklistItemIds.has(item._id)) {
+            console.warn(`Duplicate ChecklistItem _id found during migration: ${item._id}. Ignoring duplicate.`);
+            newRealm.delete(item);
+          } else {
+            uniqueChecklistItemIds.add(item._id);
+          }
+        });
       }
     }
   }

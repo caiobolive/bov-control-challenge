@@ -2,6 +2,7 @@ export type ThemeType = {
     COLORS: {
       PRIMARY: string;
       SECONDARY: string;
+      PRIMARY_LIGHT: string;
       TEXT_ON_PRIMARY: string;
       BACKGROUND: string;
       TEXT: string;
@@ -16,7 +17,8 @@ export type ThemeType = {
 export const lightTheme: ThemeType = {
     COLORS: {
       PRIMARY: '#6ba9dd',  
-      SECONDARY: '#FF9500', 
+      SECONDARY: '#FF9500',
+      PRIMARY_LIGHT: '#D5EBF2', 
       TEXT: '#333333',
       TEXT_ON_PRIMARY: '#FFFFFF',      
       BACKGROUND: '#FFFFFF',
@@ -31,7 +33,8 @@ export const lightTheme: ThemeType = {
   export const darkTheme: ThemeType = {
     COLORS: {
       PRIMARY: '#0A84FF',    
-      SECONDARY: '#FFCC00',  
+      SECONDARY: '#FFCC00',
+      PRIMARY_LIGHT: '#88bdf2',  
       TEXT: '#FFFFFF',
       TEXT_ON_PRIMARY: '#FFFFFF',       
       BACKGROUND: '#000000',
